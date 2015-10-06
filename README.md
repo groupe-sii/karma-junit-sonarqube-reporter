@@ -1,4 +1,4 @@
-# karma-junit-sonarqube-reporter
+# karma-junit7-sonarqube-reporter
 
 > Reporter for the JUnit7 XML format which is also Sonarqube (a.k.a. Sonar) friendly. This plugin is a modification of the existing `karma-junit-sonarqube-reporter` plugin.     
 
