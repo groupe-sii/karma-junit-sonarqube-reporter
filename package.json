@@ -1,39 +1,36 @@
 {
-  "name": "karma-junit-sonarqube-reporter",
+  "name": "karma-junit7-sonarqube-reporter",
   "version": "0.0.1",
-  "description": "A Karma plugin that generates a JUnit xml report which is Sonarqube friendly.",
+  "description": "A Karma plugin that generates a JUnit7 xml report which is Sonarqube friendly.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/henriquegontijo/karma-junit-sonarqube-reporter.git"
+    "url": "git://github.com/groupe-sii/karma-junit7-sonarqube-reporter.git"
   },
   "keywords": [
     "karma-plugin",
     "karma-reporter",
     "junit"
   ],
-  "author": "Henrique Gontijo <henrique@gontijo.org>",
+  "author": "Cédric Le Gallo <clegallo@sii.fr>",
   "dependencies": {
     "xmlbuilder": "0.4.2"
   },
   "peerDependencies": {
     "karma": ">=0.9"
   },
-  "license": "MIT",
+  "license": "ISC",
   "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-npm": "~0.0.2",
-    "grunt-bump": "~0.0.7",
-    "grunt-auto-release": "~0.0.2"
   },
   "contributors": [
     "Vojta Jina <vojta.jina@gmail.com>",
     "Friedel Ziegelmayer <friedel.ziegelmayer@gmail.com>",
     "Sylvain Hamel <sylvainhamel0@gmail.com>",
     "Trey Hyde <thyde@centraldesktop.com>",
-    "sylvain-hamel <sylvainhamel0@gmail.com>"
+    "sylvain-hamel <sylvainhamel0@gmail.com>",
+    "Henrique Gontijo <henrique@gontijo.org"
   ]
 }
