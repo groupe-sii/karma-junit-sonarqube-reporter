@@ -19,9 +19,9 @@ var fs = require('fs');
 var builder = require('xmlbuilder');
 
 var jsFileSuffix = ".js";
-var specNaming =  "The spec name should map to the file structure: describe(\"test.com.company.BarTest\") → test/com/company/BarTest.js"
+var specNaming = "The spec name should map to the file structure: describe(\"test.com.company.BarTest\") → test/com/company/BarTest.js";
 
-var JUnitReporter = function(baseReporterDecorator, config, logger, helper, formatError) {
+var JUnitReporter = function (baseReporterDecorator, config, logger, helper) {
   var log = logger.create('reporter.junit');
   var reporterConfig = config.junitReporter || {};
   var pkgName = reporterConfig.suite || '';
@@ -31,33 +31,34 @@ var JUnitReporter = function(baseReporterDecorator, config, logger, helper, form
   var xml;
   var suites;
   var pendingFileWritings = 0;
-  var fileWritingFinished = function() {};
+  var fileWritingFinished = function () {};
   var allMessages = [];
   var specNamingWrong = false;
+  var testSuites = {};
 
   baseReporterDecorator(this);
 
-  this.adapters = [function(msg) {
+  this.adapters = [function (msg) {
     allMessages.push(msg);
   }];
 
-  var initializeXmlForBrowser = function(browser) {
+  var initializeXmlForBrowser = function (browser) {
     var timestamp = (new Date()).toISOString().substr(0, 19);
     var suite = suites[browser.id] = xml.ele('testsuite', {
-      name: browser.name, 
-      'package': pkgName, 
-      timestamp: timestamp, 
-      id: 0, 
+      name: browser.name,
+      'package': pkgName,
+      timestamp: timestamp,
+      id: 0,
       hostname: os.hostname()
     });
 
-    suite.ele('properties').ele('property', { 
+    suite.ele('properties').ele('property', {
       name: 'browser.fullName',
       value: browser.fullName
     });
   };
 
-  this.onRunStart = function(browsers) {
+  this.onRunStart = function (browsers) {
     suites = Object.create(null);
     xml = builder.create('testsuites');
 
@@ -65,11 +66,11 @@ var JUnitReporter = function(baseReporterDecorator, config, logger, helper, form
     browsers.forEach(initializeXmlForBrowser);
   };
 
-  this.onBrowserStart = function(browser) {
+  this.onBrowserStart = function (browser) {
     initializeXmlForBrowser(browser);
   };
 
-  this.onBrowserComplete = function(browser) {
+  this.onBrowserComplete = function (browser) {
     var suite = suites[browser.id];
 
     if (!suite) {
@@ -93,12 +94,12 @@ var JUnitReporter = function(baseReporterDecorator, config, logger, helper, form
     }
   };
 
-  this.onRunComplete = function() {
+  this.onRunComplete = function () {
     var xmlToOutput = xml;
 
     pendingFileWritings++;
-    helper.mkdirIfNotExists(path.dirname(outputFile), function() {
-      fs.writeFile(outputFile, xmlToOutput.end({pretty: true}), function(err) {
+    helper.mkdirIfNotExists(path.dirname(outputFile), function () {
+      fs.writeFile(outputFile, xmlToOutput.end({pretty: true}), function (err) {
         if (err) {
           log.warn('Cannot write JUnit xml\n\t' + err.message);
         } else {
@@ -131,34 +132,56 @@ var JUnitReporter = function(baseReporterDecorator, config, logger, helper, form
     return result;
   }
 
+  function incrementStr(str, value) {
+    return (parseInt(str, 10) + (value || 1));
+  }
   // classname format: <browser>.<package>.<suite>
   // ex.: Firefox_210_Mac_OS.com.company.BarTest
   // the classname should map to the file structure: com.company.BarTest → com/company/BarTest.js
-  this.specSuccess = this.specSkipped = this.specFailure = function(browser, result) {
-    var classname = browser.name.replace(/\s/g, '_').replace(/\./g, '');
-    classname += pkgName ? pkgName + ' ' : '';
-    classname += '.' + result.suite[0];
+  this.specSuccess = this.specSkipped = this.specFailure = function (browser, result) {
+    var classname = result.suite[0] + '.js';
+    if (!testSuites[classname]) {
+      testSuites[classname] = suites[browser.id].ele('testsuite', {
+        name: result.suite[0],
+        time: 0,
+        tests: 0,
+        errors: 0,
+        failures: 0,
+        disabled: 0,
+        file: classname
+      });
+    }
     checkSuiteName(result.suite[0]);
-
-    var spec = suites[browser.id].ele('testcase', {
+    var attrs = testSuites[classname].attributes;
+    var spec = testSuites[classname].ele('testcase', {
       name: result.description,
-      time: ((result.time || 0) / 1000),
-      classname: classname
+      time: ((result.time || 0) / 1000)
     });
-
+    attrs.tests = incrementStr(attrs.tests);
+    attrs.time = parseFloat(attrs.time) + ((result.time || 0) / 1000);
     if (result.skipped) {
       spec.ele('skipped');
+      attrs.disabled = incrementStr(attrs.disabled);
     }
 
     if (!result.success) {
-      result.log.forEach(function(err) {
-        spec.ele('failure', {type: ''}, formatError(err));
+      result.log.forEach(function (err) {
+        var logErr = err.split('\n    at ');
+        if (logErr[0].startsWith('Expected')) {
+          attrs.failures = incrementStr(attrs.failures);
+          spec.ele('failure', {msg: logErr[0]});
+        } else {
+          attrs.errors = incrementStr(attrs.errors);
+          spec.ele('error', {msg: 'Error while executing test'});
+        }
       });
+
+      spec.ele('system-err').dat(result.log);
     }
   };
 
   // wait for writing all the xml files, before exiting
-  this.onExit = function(done) {
+  this.onExit = function (done) {
     if (pendingFileWritings) {
       fileWritingFinished = done;
     } else {
@@ -167,7 +190,7 @@ var JUnitReporter = function(baseReporterDecorator, config, logger, helper, form
   };
 };
 
-JUnitReporter.$inject = ['baseReporterDecorator', 'config', 'logger', 'helper', 'formatError'];
+JUnitReporter.$inject = ['baseReporterDecorator', 'config', 'logger', 'helper'];
 
 // PUBLISH DI MODULE
 module.exports = {
