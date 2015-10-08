@@ -1,6 +1,6 @@
 {
   "name": "karma-junit7-sonarqube-reporter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Karma plugin that generates a JUnit7 xml report which is Sonarqube friendly.",
   "main": "index.js",
   "scripts": {
@@ -23,8 +23,7 @@
     "karma": ">=0.9"
   },
   "license": "ISC",
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "contributors": [
     "Vojta Jina <vojta.jina@gmail.com>",
     "Friedel Ziegelmayer <friedel.ziegelmayer@gmail.com>",
