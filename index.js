@@ -147,7 +147,7 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper) {
         tests: 0,
         errors: 0,
         failures: 0,
-        disabled: 0,
+        skipped: 0,
         file: classname
       });
     }
@@ -161,7 +161,7 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper) {
     attrs.time = parseFloat(attrs.time) + ((result.time || 0) / 1000);
     if (result.skipped) {
       spec.ele('skipped');
-      attrs.disabled = incrementStr(attrs.disabled);
+      attrs.skipped = incrementStr(attrs.skipped);
     }
 
     if (!result.success) {
