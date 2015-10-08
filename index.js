@@ -46,7 +46,6 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper) {
     var timestamp = (new Date()).toISOString().substr(0, 19);
     var suite = suites[browser.id] = xml.ele('testsuite', {
       name: browser.name,
-      'package': pkgName,
       timestamp: timestamp,
       id: 0,
       hostname: os.hostname()
@@ -117,7 +116,7 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper) {
   };
 
   function checkSuiteName(suite) {
-    var suiteFilename = suite.replace(/\./g, '/');
+    var suiteFilename = (pkgName + suite).replace(/\./g, '/');
     suiteFilename += jsFileSuffix;
     var normalizedFilename = helper.normalizeWinPath(path.resolve(suiteFilename));
     var result = fs.exists(normalizedFilename, function (exists) {
