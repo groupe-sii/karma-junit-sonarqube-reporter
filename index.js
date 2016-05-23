@@ -42,6 +42,8 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper) {
     allMessages.push(msg);
   }];
 
+  config.files.unshift({pattern: path.join(__dirname, 'lib', 'browser.js'), watched: false, served: true, included: true});
+
   var initializeXmlForBrowser = function (browser) {
     var timestamp = (new Date()).toISOString().substr(0, 19);
     var suite = suites[browser.id] = xml.ele('testsuite', {
@@ -139,6 +141,11 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper) {
   // the classname should map to the file structure: com.company.BarTest → com/company/BarTest.js
   this.specSuccess = this.specSkipped = this.specFailure = function (browser, result) {
     var classname = result.suite[0] + '.js';
+
+    // Get the filename if existing in the result
+    if (result.filename) {
+      classname = result.filename;
+    }
     if (!testSuites[classname]) {
       testSuites[classname] = suites[browser.id].ele('testsuite', {
         name: result.suite[0],
@@ -150,7 +157,11 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper) {
         file: classname
       });
     }
-    checkSuiteName(result.suite[0]);
+
+    if (!result.filename) {
+      checkSuiteName(result.suite[0]);
+    }
+
     var attrs = testSuites[classname].attributes;
     var spec = testSuites[classname].ele('testcase', {
       name: result.description,
@@ -191,7 +202,16 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper) {
 
 JUnitReporter.$inject = ['baseReporterDecorator', 'config', 'logger', 'helper'];
 
+var createJUnitPreprocessor = function () {
+  return function(content, file, done) {
+    done(null, 'window.__setCurrentFile("' + file.originalPath + '");' + content);
+  }
+}
+
+createJUnitPreprocessor.$inject = [];
+
 // PUBLISH DI MODULE
 module.exports = {
+  'preprocessor:junit': ['factory', createJUnitPreprocessor],
   'reporter:junit': ['type', JUnitReporter]
 };

@@ -24,6 +24,10 @@ npm install karma-junit7-sonarqube-reporter --save-dev
 // karma.conf.js
 module.exports = function(config) {
   config.set({
+    preprocessors: {
+      'test/**/*.spec.js': ['junit']
+    },
+
     reporters: ['progress', 'junit'],
 
     // the default configuration
