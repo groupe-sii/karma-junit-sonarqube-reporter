@@ -204,9 +204,11 @@ JUnitReporter.$inject = ['baseReporterDecorator', 'config', 'logger', 'helper'];
 
 var createJUnitPreprocessor = function () {
   return function(content, file, done) {
-    done(null, 'window.__setCurrentFile("' + file.originalPath + '");' + content);
+    content = content.replace(/(describe.*{)/m, "$1beforeEach(function() {window.__setCurrentFile('" + file.originalPath + "')});\n");
+
+    done(null, content);
   }
-}
+};
 
 createJUnitPreprocessor.$inject = [];
 
